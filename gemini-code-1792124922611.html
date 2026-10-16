@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiv Sadan - Property Management Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .active-tab {
+            background-color: #0284c7 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);
+        }
+        .modal-blur {
+            backdrop-filter: blur(12px);
+        }
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="flex flex-col gap-2"></div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-slate-900 text-white py-4 px-4 shadow-xl border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="text-center sm:text-left flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
+                        Shiv Sadan <span class="text-[10px] font-semibold text-brand-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">शिव सदन</span>
+                    </h1>
+                    <p class="text-xs text-slate-300 flex items-center gap-1 mt-0.5">
+                        <i class="fa-solid fa-location-dot text-accent-500"></i> Jadeshwar Park St. No. 2, Rajkot
+                        <span id="cloudStatus" class="ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30">● Connected to Internet</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Global Action Bar -->
+            <div class="flex items-center gap-2">
+                <button onclick="showPublicHome()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 border border-white/10">
+                    <i class="fa-solid fa-house text-brand-500"></i> Home Page
+                </button>
+                <div id="activeSessionHeader" class="hidden flex items-center gap-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                    <div class="text-right">
+                        <p id="activeRoleLabel" class="text-xs font-bold text-white"></p>
+                        <p id="activeSubLabel" class="text-[10px] text-brand-100"></p>
+                    </div>
+                    <button onclick="logoutSession()" class="bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm flex items-center gap-1">
+                        <i class="fa-solid fa-power-off"></i> Exit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- LANDING / HOMEPAGE SCREEN -->
+    <div id="publicHomePage" class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
+        
+        <!-- Hero Banner & Portal Entry Triggers -->
+        <div class="bg-gradient-to-br from-slate-900 via-brand-900 to-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-white pointer-events-none">
+                <i class="fa-solid fa-building-user"></i>
+            </div>
+            <div class="relative z-10 max-w-2xl">
+                <span class="bg-brand-500/20 text-brand-100 text-xs font-bold px-3 py-1 rounded-full border border-brand-500/30 inline-block mb-3">
+                    Premier Residential & Commercial Leasing (Cloud Synced)
+                </span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Shiv Sadan Complex</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                    15 Long-Term Residential Rooms & 2 Commercial Outlets. Located at Jadeshwar Park Street No. 2, near Khokhardar Nadi & Radha Krishna Mandir, Rajkot, Gujarat.
+                </p>
+
+                <!-- Portal Select Buttons -->
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <button onclick="showOwnerLoginModal()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield text-sm"></i> Owner Portal Access
+                    </button>
+                    <button onclick="showTenantLoginModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-door-open text-sm"></i> Tenant Room Login
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Map & Property Photo Gallery -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Interactive Map Section -->
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-brand-600"></i> Property Location Map
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Jadeshwar Park Street No. 2, Rajkot, Gujarat</p>
+                        </div>
+                        <a href="https://maps.google.com/?cid=13658425733537360745" target="_blank" class="text-xs font-bold text-brand-600 hover:underline flex items-center gap-1">
+                            Google Maps <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Embedded Google Map -->
+                    <div class="w-full h-72 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+                        <iframe 
+                            class="w-full h-full border-0" 
+                            loading="lazy" 
+                            allowfullscreen 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3692.128731508253!2d70.8038!3d22.2721!2m3!1f0!0f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3959ca2cd211e129%3A0xbe1f7d56d68cb329!2sJadeshwar%20bungalows!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin">
+                        </iframe>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-slate-600 gap-2">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-landmark text-amber-500"></i> Near Radha Krishna Mandir</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-cyan-500"></i> Near Khokhardar Nadi</span>
+                </div>
+            </div>
+
+            <!-- Property Photo Showcase Gallery -->
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-images text-brand-600"></i> Property Showcase
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">High Quality Building & Room Views</p>
+                        </div>
+                        <button onclick="openPhotoUploadModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus text-emerald-400"></i> Upload Photo
+                        </button>
+                    </div>
+
+                    <!-- Gallery Grid -->
+                    <div id="galleryGrid" class="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                        <!-- Dynamic Photos Injected Here -->
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                    <span>Photos synced across internet</span>
+                    <span id="photoCountBadge" class="bg-brand-50 text-brand-700 font-bold px-2 py-0.5 rounded-full text-[10px]"></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- OWNER VIEW CONTAINER -->
+    <div id="ownerViewContainer" class="hidden flex-grow flex flex-col">
+        <!-- OWNER SUB-NAV BAR -->
+        <nav class="bg-slate-900 text-slate-300 sticky top-[65px] z-40 shadow-md border-b border-slate-800">
+            <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center p-2 gap-2">
+                <div class="flex flex-wrap gap-1 md:gap-2">
+                    <button id="btn-owner-dashboard" onclick="switchOwnerTab('dashboard')" class="active-tab px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie"></i> Overview
+                    </button>
+                    <button id="btn-owner-tenants" onclick="switchOwnerTab('tenants')" class="px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-users"></i> Tenants & Passwords
+                    </button>
+                    <button id="btn-owner-ledger" onclick="switchOwnerTab('ledger')" class="px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-indian-rupee-sign"></i> Rent Ledger
+                    </button>
+                    <button id="btn-owner-receipts" onclick="switchOwnerTab('receipts')" class="px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-brands fa-whatsapp text-emerald-400"></i> WhatsApp Receipts
+                    </button>
+                    <button id="btn-owner-settings" onclick="switchOwnerTab('settings')" class="px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-gear"></i> Settings
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+            <!-- TAB 1: OVERVIEW -->
+            <div id="owner-tab-dashboard" class="owner-tab-content space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Property Overview</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">15 Residential Rooms + 2 Commercial Stores (17 Total Units)</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="dashYearSelect" onchange="renderAllViews()" class="text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold focus:outline-none">
+                            </select>
+                            <select id="dashMonthSelect" onchange="renderAllViews()" class="text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold focus:outline-none">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mt-6">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                            <div class="text-2xl font-black text-brand-600">17</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Total Units</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                            <div id="dashStatOccupied" class="text-2xl font-black text-emerald-600">0</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Occupied</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                            <div id="dashStatVacant" class="text-2xl font-black text-slate-400">17</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Vacant</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                            <div id="dashStatExpected" class="text-lg md:text-xl font-black text-purple-700">₹0</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Expected Rent</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                            <div id="dashStatCollected" class="text-lg md:text-xl font-black text-emerald-700">₹0</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Collected</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center col-span-2 md:col-span-1">
+                            <div id="dashStatPending" class="text-lg md:text-xl font-black text-rose-600">₹0</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Pending Dues</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-qrcode text-brand-600"></i> Official Payment Receiving Account
+                        </h3>
+                        <div class="bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl p-4 text-center">
+                            <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">UPI ID</span>
+                            <div class="text-xl font-black text-slate-900 my-1 tracking-wide">7041724041@ybl</div>
+                            <button onclick="copyUPI()" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-1.5 rounded-xl transition inline-flex items-center gap-1 shadow-sm mt-1">
+                                <i class="fa-solid fa-copy"></i> Copy UPI ID
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-shield-halved text-brand-600"></i> Leasing Rules
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span><strong>Due Date:</strong> Rent due on or before 5th of every calendar month.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span><strong>Pure Rent Tracker:</strong> Directly manages rental payments without sub-meters.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span><strong>Contact:</strong> +91 7041724041</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: TENANTS & PASSWORDS -->
+            <div id="owner-tab-tenants" class="owner-tab-content hidden space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-brand-600"></i> Tenant Directory & Room Passwords
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Manage tenants, base rent, and individual room passwords.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <input type="text" id="tenantSearchInput" onkeyup="renderDirectoryTable()" placeholder="Search room or tenant name..." class="text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none w-full md:w-64">
+                        <button onclick="openTenantModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                            <i class="fa-solid fa-user-plus"></i> Add Tenant
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Unit</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Tenant Name</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3">Base Rent</th>
+                                    <th class="p-3">Room Password</th>
+                                    <th class="p-3">Move-In</th>
+                                    <th class="p-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="directoryTableBody" class="divide-y divide-slate-200 bg-white">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: LEDGER -->
+            <div id="owner-tab-ledger" class="owner-tab-content hidden space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-indian-rupee-sign text-emerald-600"></i> Monthly Collection Ledger
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Record and view monthly rent payments (2024-2030).</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="ledgerYearSelect" onchange="renderAllViews()" class="text-xs p-2 rounded-xl border border-slate-300 bg-slate-50 font-bold focus:outline-none">
+                        </select>
+                        <select id="ledgerMonthSelect" onchange="renderAllViews()" class="text-xs p-2 rounded-xl border border-slate-300 bg-slate-50 font-bold focus:outline-none">
+                        </select>
+                        <button onclick="exportDataCSV()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1">
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Record Entry Form -->
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">
+                        Log / Update Payment
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Select Unit *</label>
+                            <select id="ledgerUnitSelect" onchange="loadSelectedLedgerEntry()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none bg-white">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Amount Paid (₹)</label>
+                            <input type="number" id="ledgerAmountPaid" placeholder="3500" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Payment Mode</label>
+                            <select id="ledgerPayMode" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white">
+                                <option value="UPI">UPI</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Status</label>
+                            <select id="ledgerPayStatus" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white">
+                                <option value="Paid">Paid</option>
+                                <option value="Partial">Partial</option>
+                                <option value="Unpaid">Unpaid</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Payment Date</label>
+                            <input type="date" id="ledgerPayDate" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="saveLedgerEntryFromForm()" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-sm">
+                                Save Record
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ledger Table -->
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Unit</th>
+                                    <th class="p-3">Occupant</th>
+                                    <th class="p-3">Base Rent</th>
+                                    <th class="p-3">Amount Paid</th>
+                                    <th class="p-3">Mode</th>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Quick Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerTableBody" class="divide-y divide-slate-200 bg-white">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: WHATSAPP RECEIPTS -->
+            <div id="owner-tab-receipts" class="owner-tab-content hidden space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 max-w-2xl mx-auto">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                        <i class="fa-brands fa-whatsapp text-emerald-600"></i> WhatsApp Rent Receipt & Reminder Generator
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Unit</label>
+                                <select id="waUnitSelect" onchange="populateWhatsAppForm()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none bg-white">
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Month</label>
+                                <select id="waMonthSelect" onchange="populateWhatsAppForm()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none bg-white">
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Year</label>
+                                <select id="waYearSelect" onchange="populateWhatsAppForm()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none bg-white">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Receipt Text Preview</label>
+                            <textarea id="waMessagePreview" rows="7" class="w-full text-xs p-3 rounded-xl border border-slate-300 font-mono bg-slate-50 focus:outline-none"></textarea>
+                        </div>
+
+                        <button onclick="dispatchWhatsAppMessage()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> Dispatch via WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: SETTINGS -->
+            <div id="owner-tab-settings" class="owner-tab-content hidden space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 max-w-xl mx-auto space-y-6">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-lock text-purple-600"></i> Owner Password & Security Controls
+                    </h2>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Change Owner Password</h3>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Current Password</label>
+                            <input type="password" id="setCurrOwnerPass" placeholder="Enter current owner password" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">New Password</label>
+                            <input type="password" id="setNewOwnerPass" placeholder="Enter new owner password" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none">
+                        </div>
+                        <button onclick="saveOwnerPasswordChange()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+                            Update Owner Password
+                        </button>
+                    </div>
+
+                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200 space-y-2">
+                        <h3 class="text-xs font-bold text-rose-900 uppercase tracking-wider">Reset Cloud Data</h3>
+                        <p class="text-xs text-rose-700">Clears all custom tenants, uploaded photos, and payment ledgers from internet storage.</p>
+                        <button onclick="resetAllDatabase()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition mt-1">
+                            <i class="fa-solid fa-trash-arrow-up mr-1"></i> Reset Cloud Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TENANT VIEW CONTAINER -->
+    <div id="tenantViewContainer" class="hidden flex-grow flex flex-col max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
+        <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <span id="tenantRoomBadge" class="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider"></span>
+                <h2 id="tenantDisplayTitle" class="text-xl font-extrabold text-slate-900 mt-2">Room Dashboard</h2>
+                <p class="text-xs text-slate-500">Shiv Sadan Residential Complex, Rajkot</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <select id="tenantYearSelect" onchange="renderTenantRoomDashboard()" class="text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold focus:outline-none">
+                </select>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Payment QR & Account Details -->
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 text-center flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Official UPI Payment</h3>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block mb-3">
+                        <img id="tenantQrCodeImg" src="" alt="UPI Payment QR" class="w-36 h-36 mx-auto rounded-lg shadow-sm">
+                    </div>
+                    <p class="text-xs font-bold text-slate-900">UPI ID: <span class="text-brand-600 font-mono">7041724041@ybl</span></p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Savita Vaniya / Yashraj</p>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                    <button onclick="copyUPI()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy UPI ID
+                    </button>
+                    <a href="https://wa.me/917041724041" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 block">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp Support
+                    </a>
+                </div>
+            </div>
+
+            <!-- Room Rent Status & Statement -->
+            <div class="md:col-span-2 bg-white rounded-3xl p-6 shadow-md border border-slate-200 flex flex-col justify-between space-y-4">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Room Payment Statement</h3>
+                    
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Month</th>
+                                    <th class="p-3">Base Rent</th>
+                                    <th class="p-3">Amount Paid</th>
+                                    <th class="p-3">Mode</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tenantRoomLedgerBody" class="divide-y divide-slate-200 bg-white">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900">
+                    <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Rent is due on or before the 5th of each calendar month.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER LOGIN MODAL -->
+    <div id="ownerLoginModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4 modal-blur">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900">Owner Authorization</h3>
+                <p class="text-xs text-slate-500 mt-1">Enter master password to access management portal.</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); processOwnerLogin();" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Owner Password</label>
+                    <input type="password" id="inputOwnerPassword" required placeholder="Enter owner password" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeOwnerLoginModal()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TENANT LOGIN MODAL -->
+    <div id="tenantLoginModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4 modal-blur">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+                    <i class="fa-solid fa-door-open"></i>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900">Tenant Room Login</h3>
+                <p class="text-xs text-slate-500 mt-1">Select unit and enter room password.</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); processTenantLogin();" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Select Unit</label>
+                    <select id="selectTenantRoom" required class="w-full text-xs p-3 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white">
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Room Password</label>
+                    <input type="password" id="inputTenantRoomPassword" required placeholder="Enter room password" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeTenantLoginModal()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-3 rounded-xl shadow-sm">Unlock Room</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PHOTO UPLOAD MODAL -->
+    <div id="photoUploadModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4 modal-blur">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+            <div class="text-center mb-4">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900">Upload Property Photo</h3>
+                <p class="text-xs text-slate-500 mt-1">Select a photo from your device to save to cloud storage.</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); processPhotoUpload();" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Photo Title / Label</label>
+                    <input type="text" id="uploadPhotoTitle" required placeholder="e.g. Front Balcony View" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Choose Image File</label>
+                    <input type="file" id="uploadPhotoInput" accept="image/*" required class="w-full text-xs p-2 rounded-xl border border-slate-300 bg-slate-50">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closePhotoUploadModal()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-sm">Save Photo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT TENANT MODAL -->
+    <div id="tenantFormModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4 modal-blur">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <h3 id="tenantFormTitle" class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-emerald-600"></i> Register Tenant Profile
+            </h3>
+
+            <form id="tenantModalForm" onsubmit="event.preventDefault(); submitTenantForm();" class="space-y-3">
+                <input type="hidden" id="formOriginalUnit">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Select Unit / Room *</label>
+                    <select id="formUnit" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white">
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tenant Full Name *</label>
+                        <input type="text" id="formName" required placeholder="Full Name" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone Number *</label>
+                        <input type="tel" id="formPhone" required placeholder="e.g. 7041724041" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none font-semibold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Base Rent (₹) *</label>
+                        <input type="number" id="formRent" required placeholder="e.g. 3500" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Assign Room Password *</label>
+                        <input type="text" id="formRoomPassword" required placeholder="Assign password for room login" class="w-full text-xs p-2.5 rounded-xl border border-amber-300 bg-amber-50 focus:outline-none font-bold text-amber-900">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Security Deposit (₹)</label>
+                        <input type="number" id="formDeposit" placeholder="e.g. 5000" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Move-in Date</label>
+                        <input type="date" id="formStartDate" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none bg-white">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="closeTenantModal()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-sm">Save Tenant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const CLOUD_BIN_URL = "https://api.jsonbin.io/v3/b/66ebcc6ae41b4d34e434fbf1";
+        const DEFAULT_OWNER_PASS = "narshima2212";
+        const DEFAULT_ROOM_PASS = "tenant123";
+        const YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        const UNITS = [];
+        for (let i = 1; i <= 15; i++) UNITS.push(`Room ${i}`);
+        UNITS.push("Store 1", "Store 2");
+
+        const DEFAULT_PHOTOS = [
+            {
+                id: 'p1',
+                title: 'Building Exterior',
+                data: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%230c4a6e"/><rect x="40" y="40" width="220" height="160" fill="%230284c7" rx="8"/><rect x="60" y="60" width="40" height="40" fill="%23e0effe" rx="4"/><rect x="130" y="60" width="40" height="40" fill="%23e0effe" rx="4"/><rect x="200" y="60" width="40" height="40" fill="%23e0effe" rx="4"/><rect x="60" y="120" width="40" height="40" fill="%23e0effe" rx="4"/><rect x="200" y="120" width="40" height="40" fill="%23e0effe" rx="4"/><rect x="130" y="130" width="40" height="70" fill="%23f59e0b" rx="4"/><text x="150" y="30" fill="white" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">Shiv Sadan Complex</text></svg>`
+            },
+            {
+                id: 'p2',
+                title: 'Commercial Outlets',
+                data: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%231e293b"/><rect x="30" y="50" width="110" height="120" fill="%233b82f6" rx="6"/><rect x="160" y="50" width="110" height="120" fill="%2310b981" rx="6"/><rect x="45" y="90" width="80" height="80" fill="%23f8fafc" rx="2"/><rect x="175" y="90" width="80" height="80" fill="%23f8fafc" rx="2"/><text x="85" y="75" fill="white" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">Store 1</text><text x="215" y="75" fill="white" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">Store 2</text></svg>`
+            },
+            {
+                id: 'p3',
+                title: 'Main Entrance & Stairs',
+                data: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%23334155"/><path d="M50 180 L100 130 L200 130 L250 180 Z" fill="%2364748b"/><rect x="110" y="50" width="80" height="80" fill="%23d97706" rx="4"/><circle cx="170" cy="90" r="4" fill="%23fef08a"/><text x="150" y="35" fill="white" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Main Entrance</text></svg>`
+            },
+            {
+                id: 'p4',
+                title: 'Residential Unit View',
+                data: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%230f172a"/><rect x="20" y="20" width="260" height="160" fill="%23f8fafc" rx="8"/><rect x="40" y="40" width="80" height="100" fill="%2394a3b8" rx="4"/><rect x="150" y="80" width="110" height="60" fill="%230284c7" rx="6"/><text x="150" y="170" fill="%23334155" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Standard Room Interior</text></svg>`
+            }
+        ];
+
+        let db = {
+            ownerPassword: DEFAULT_OWNER_PASS,
+            tenants: {},
+            ledgers: {},
+            photos: DEFAULT_PHOTOS
+        };
+
+        let currentRole = null;
+        let activeTenantUnit = null;
+
+        window.onload = function() {
+            initDropdowns();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("ledgerPayDate").value = today;
+
+            const upiString = encodeURIComponent("upi://pay?pa=7041724041@ybl&pn=Shiv%20Sadan&cu=INR");
+            document.getElementById("tenantQrCodeImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${upiString}`;
+
+            // Load data from internet cloud storage
+            loadCloudDatabase();
+        };
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            const bgColor = type === "success" ? "bg-emerald-600" : (type === "error" ? "bg-rose-600" : "bg-slate-800");
+
+            toast.className = `${bgColor} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform transition-all duration-300`;
+            toast.innerHTML = `<i class="${type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'}"></i> ${message}`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "translate-y-2");
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function loadCloudDatabase() {
+            try {
+                const response = await fetch(CLOUD_BIN_URL + "/latest");
+                const result = await response.json();
+                if (result && result.record) {
+                    db = result.record;
+                    if (!db.ownerPassword) db.ownerPassword = DEFAULT_OWNER_PASS;
+                    if (!db.tenants) db.tenants = {};
+                    if (!db.ledgers) db.ledgers = {};
+                    if (!db.photos || db.photos.length === 0) db.photos = DEFAULT_PHOTOS;
+                }
+                document.getElementById("cloudStatus").innerHTML = "● Connected to Internet";
+                document.getElementById("cloudStatus").className = "ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30";
+            } catch (e) {
+                console.error("Cloud Load Error, falling back to local", e);
+                document.getElementById("cloudStatus").innerHTML = "● Offline Mode";
+                document.getElementById("cloudStatus").className = "ml-2 bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30";
+            }
+            renderAllViews();
+        }
+
+        async function saveAndRenderAll() {
+            renderAllViews();
+            try {
+                await fetch(CLOUD_BIN_URL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(db)
+                });
+                document.getElementById("cloudStatus").innerHTML = "● Synced with Internet";
+            } catch (e) {
+                console.error("Cloud Save Error", e);
+                document.getElementById("cloudStatus").innerHTML = "● Sync Failed";
+            }
+        }
+
+        function renderAllViews() {
+            renderGallery();
+            renderDashboardMetrics();
+            renderDirectoryTable();
+            renderLedgerTable();
+            populateWhatsAppForm();
+            if (currentRole === 'TENANT' && activeTenantUnit) {
+                renderTenantRoomDashboard();
+            }
+        }
+
+        function showPublicHome() {
+            currentRole = null;
+            activeTenantUnit = null;
+
+            document.getElementById("ownerViewContainer").classList.add("hidden");
+            document.getElementById("tenantViewContainer").classList.add("hidden");
+            document.getElementById("activeSessionHeader").classList.add("hidden");
+            document.getElementById("publicHomePage").classList.remove("hidden");
+
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const container = document.getElementById("galleryGrid");
+            if (!container) return;
+            container.innerHTML = '';
+
+            db.photos.forEach((photo) => {
+                const card = document.createElement("div");
+                card.className = "relative rounded-2xl overflow-hidden border border-slate-200 group bg-slate-50 shadow-sm";
+                card.innerHTML = `
+                    <img src="${photo.data}" alt="${photo.title}" class="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-2">
+                        <span class="text-[11px] font-bold text-white tracking-tight leading-tight">${photo.title}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById("photoCountBadge").innerText = `${db.photos.length} Photos`;
+        }
+
+        function openPhotoUploadModal() {
+            document.getElementById("photoUploadModal").classList.remove("hidden");
+            document.getElementById("photoUploadModal").classList.add("flex");
+            document.getElementById("uploadPhotoTitle").value = '';
+            document.getElementById("uploadPhotoInput").value = '';
+        }
+
+        function closePhotoUploadModal() {
+            document.getElementById("photoUploadModal").classList.add("hidden");
+            document.getElementById("photoUploadModal").classList.remove("flex");
+        }
+
+        function processPhotoUpload() {
+            const title = document.getElementById("uploadPhotoTitle").value.trim();
+            const fileInput = document.getElementById("uploadPhotoInput");
+
+            if (!title || !fileInput.files || !fileInput.files[0]) {
+                showToast("Please provide a title and select a photo.", "error");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const newPhoto = {
+                    id: 'p_' + Date.now(),
+                    title: title,
+                    data: e.target.result
+                };
+
+                db.photos.push(newPhoto);
+                saveAndRenderAll();
+                closePhotoUploadModal();
+                showToast("Property photo added and synced!");
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function initDropdowns() {
+            const currentYear = new Date().getFullYear();
+            const currentMonthName = MONTHS[new Date().getMonth()];
+
+            const unitSelects = [
+                document.getElementById("formUnit"),
+                document.getElementById("ledgerUnitSelect"),
+                document.getElementById("waUnitSelect"),
+                document.getElementById("selectTenantRoom")
+            ];
+
+            unitSelects.forEach(select => {
+                if (!select) return;
+                select.innerHTML = '<option value="">-- Select Unit --</option>';
+                UNITS.forEach(u => {
+                    const opt = document.createElement("option");
+                    opt.value = u;
+                    opt.textContent = u;
+                    select.appendChild(opt);
+                });
+            });
+
+            const yearSelects = [
+                document.getElementById("dashYearSelect"),
+                document.getElementById("ledgerYearSelect"),
+                document.getElementById("waYearSelect"),
+                document.getElementById("tenantYearSelect")
+            ];
+
+            yearSelects.forEach(select => {
+                if (!select) return;
+                select.innerHTML = '';
+                YEARS.forEach(y => {
+                    const opt = document.createElement("option");
+                    opt.value = y;
+                    opt.textContent = y;
+                    if (y === currentYear) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+
+            const monthSelects = [
+                document.getElementById("dashMonthSelect"),
+                document.getElementById("ledgerMonthSelect"),
+                document.getElementById("waMonthSelect")
+            ];
+
+            monthSelects.forEach(select => {
+                if (!select) return;
+                select.innerHTML = '';
+                MONTHS.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (m === currentMonthName) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        function showOwnerLoginModal() {
+            document.getElementById("ownerLoginModal").classList.remove("hidden");
+            document.getElementById("ownerLoginModal").classList.add("flex");
+            document.getElementById("inputOwnerPassword").value = "";
+        }
+
+        function closeOwnerLoginModal() {
+            document.getElementById("ownerLoginModal").classList.add("hidden");
+            document.getElementById("ownerLoginModal").classList.remove("flex");
+        }
+
+        function processOwnerLogin() {
+            const pass = document.getElementById("inputOwnerPassword").value;
+            if (pass === db.ownerPassword) {
+                currentRole = 'OWNER';
+                closeOwnerLoginModal();
+                showOwnerView();
+                showToast("Owner Authorized");
+            } else {
+                showToast("Incorrect Owner Password", "error");
+            }
+        }
+
+        function showTenantLoginModal() {
+            document.getElementById("tenantLoginModal").classList.remove("hidden");
+            document.getElementById("tenantLoginModal").classList.add("flex");
+            document.getElementById("selectTenantRoom").value = "";
+            document.getElementById("inputTenantRoomPassword").value = "";
+        }
+
+        function closeTenantLoginModal() {
+            document.getElementById("tenantLoginModal").classList.add("hidden");
+            document.getElementById("tenantLoginModal").classList.remove("flex");
+        }
+
+        function processTenantLogin() {
+            const unit = document.getElementById("selectTenantRoom").value;
+            const pass = document.getElementById("inputTenantRoomPassword").value;
+
+            if (!unit) {
+                showToast("Select your room", "error");
+                return;
+            }
+
+            const t = db.tenants[unit];
+            const correctPass = (t && t.roomPassword) ? t.roomPassword : DEFAULT_ROOM_PASS;
+
+            if (pass === correctPass) {
+                currentRole = 'TENANT';
+                activeTenantUnit = unit;
+                closeTenantLoginModal();
+                showTenantView();
+                showToast(`Unlocked ${unit}`);
+            } else {
+                showToast("Incorrect Room Password", "error");
+            }
+        }
+
+        function showOwnerView() {
+            document.getElementById("publicHomePage").classList.add("hidden");
+            document.getElementById("tenantViewContainer").classList.add("hidden");
+            document.getElementById("ownerViewContainer").classList.remove("hidden");
+
+            document.getElementById("activeSessionHeader").classList.remove("hidden");
+            document.getElementById("activeRoleLabel").innerText = "Owner Portal";
+            document.getElementById("activeSubLabel").innerText = "Savita Vaniya / Yashraj";
+
+            switchOwnerTab('dashboard');
+            renderAllViews();
+        }
+
+        function showTenantView() {
+            document.getElementById("publicHomePage").classList.add("hidden");
+            document.getElementById("ownerViewContainer").classList.add("hidden");
+            document.getElementById("tenantViewContainer").classList.remove("hidden");
+
+            document.getElementById("activeSessionHeader").classList.remove("hidden");
+            document.getElementById("activeRoleLabel").innerText = `Tenant View (${activeTenantUnit})`;
+            document.getElementById("activeSubLabel").innerText = db.tenants[activeTenantUnit]?.name || "Occupant";
+
+            renderTenantRoomDashboard();
+        }
+
+        function logoutSession() {
+            showPublicHome();
+            showToast("Logged out successfully");
+        }
+
+        function switchOwnerTab(tabId) {
+            document.querySelectorAll(".owner-tab-content").forEach(el => el.classList.add("hidden"));
+            document.querySelectorAll("nav button").forEach(btn => btn.classList.remove("active-tab"));
+
+            document.getElementById("owner-tab-" + tabId).classList.remove("hidden");
+            const targetBtn = document.getElementById("btn-owner-" + tabId);
+            if (targetBtn) targetBtn.classList.add("active-tab");
+
+            renderAllViews();
+        }
+
+        function renderDashboardMetrics() {
+            const year = document.getElementById("dashYearSelect").value || new Date().getFullYear();
+            const month = document.getElementById("dashMonthSelect").value || MONTHS[new Date().getMonth()];
+
+            let occupied = 0;
+            let expected = 0;
+            let collected = 0;
+
+            UNITS.forEach(u => {
+                const t = db.tenants[u];
+                if (t) {
+                    occupied++;
+                    const rent = parseFloat(t.rent) || 0;
+                    expected += rent;
+
+                    const key = `${year}_${month}_${u}`;
+                    const rec = db.ledgers[key];
+                    if (rec) {
+                        collected += (parseFloat(rec.amountPaid) || 0);
+                    }
+                }
+            });
+
+            document.getElementById("dashStatOccupied").innerText = occupied;
+            document.getElementById("dashStatVacant").innerText = UNITS.length - occupied;
+            document.getElementById("dashStatExpected").innerText = "₹" + expected.toLocaleString('en-IN');
+            document.getElementById("dashStatCollected").innerText = "₹" + collected.toLocaleString('en-IN');
+            document.getElementById("dashStatPending").innerText = "₹" + Math.max(0, expected - collected).toLocaleString('en-IN');
+        }
+
+        function renderDirectoryTable() {
+            const tbody = document.getElementById("directoryTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const query = (document.getElementById("tenantSearchInput")?.value || "").toLowerCase();
+
+            UNITS.forEach(u => {
+                const t = db.tenants[u];
+                const pass = (t && t.roomPassword) ? t.roomPassword : DEFAULT_ROOM_PASS;
+
+                if (query && !u.toLowerCase().includes(query) && (!t || !t.name.toLowerCase().includes(query))) {
+                    return;
+                }
+
+                const tr = document.createElement("tr");
+
+                if (t) {
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-800">${u}</td>
+                        <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Occupied</span></td>
+                        <td class="p-3 font-semibold text-slate-900">${t.name}</td>
+                        <td class="p-3 text-slate-600">${t.phone || 'N/A'}</td>
+                        <td class="p-3 font-bold text-emerald-700">₹${t.rent}</td>
+                        <td class="p-3"><code class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[11px]">${pass}</code></td>
+                        <td class="p-3 text-slate-600">${t.startDate || 'N/A'}</td>
+                        <td class="p-3 flex gap-1">
+                            <button onclick="openTenantModal('${u}')" class="bg-brand-50 hover:bg-brand-100 text-brand-700 px-2 py-1 rounded text-[11px] font-bold">Edit</button>
+                            <button onclick="deleteTenant('${u}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 px-2 py-1 rounded text-[11px] font-bold">Delete</button>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-800">${u}</td>
+                        <td class="p-3"><span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">Vacant</span></td>
+                        <td class="p-3 text-slate-400 italic" colspan="3">No active tenant</td>
+                        <td class="p-3"><code class="bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded text-[11px]">${pass}</code></td>
+                        <td class="p-3 text-slate-400">-</td>
+                        <td class="p-3">
+                            <button onclick="openTenantModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[11px] font-bold">+ Register</button>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openTenantModal(unit = null) {
+            document.getElementById("tenantFormModal").classList.remove("hidden");
+            document.getElementById("tenantFormModal").classList.add("flex");
+            document.getElementById("tenantModalForm").reset();
+
+            if (unit) {
+                const t = db.tenants[unit];
+                if (t) {
+                    document.getElementById("tenantFormTitle").innerText = `Edit Tenant (${unit})`;
+                    document.getElementById("formOriginalUnit").value = unit;
+                    document.getElementById("formUnit").value = unit;
+                    document.getElementById("formName").value = t.name || '';
+                    document.getElementById("formPhone").value = t.phone || '';
+                    document.getElementById("formRent").value = t.rent || '';
+                    document.getElementById("formRoomPassword").value = t.roomPassword || DEFAULT_ROOM_PASS;
+                    document.getElementById("formDeposit").value = t.deposit || '';
+                    document.getElementById("formStartDate").value = t.startDate || '';
+                }
+            } else {
+                document.getElementById("tenantFormTitle").innerText = `Register Tenant Profile`;
+                document.getElementById("formOriginalUnit").value = '';
+                document.getElementById("formRoomPassword").value = DEFAULT_ROOM_PASS;
+            }
+        }
+
+        function closeTenantModal() {
+            document.getElementById("tenantFormModal").classList.add("hidden");
+            document.getElementById("tenantFormModal").classList.remove("flex");
+        }
+
+        function submitTenantForm() {
+            const originalUnit = document.getElementById("formOriginalUnit").value;
+            const unit = document.getElementById("formUnit").value;
+            const roomPass = document.getElementById("formRoomPassword").value.trim() || DEFAULT_ROOM_PASS;
+
+            if (!unit) return;
+
+            const tenantObj = {
+                unit,
+                name: document.getElementById("formName").value.trim(),
+                phone: document.getElementById("formPhone").value.trim(),
+                rent: parseFloat(document.getElementById("formRent").value) || 0,
+                roomPassword: roomPass,
+                deposit: parseFloat(document.getElementById("formDeposit").value) || 0,
+                startDate: document.getElementById("formStartDate").value
+            };
+
+            if (originalUnit && originalUnit !== unit) {
+                delete db.tenants[originalUnit];
+            }
+
+            db.tenants[unit] = tenantObj;
+            saveAndRenderAll();
+            showToast(`Saved tenant profile for ${unit}`);
+            closeTenantModal();
+        }
+
+        function deleteTenant(unit) {
+            if (confirm(`Remove tenant record for ${unit}?`)) {
+                delete db.tenants[unit];
+                saveAndRenderAll();
+                showToast(`Tenant removed from ${unit}`);
+            }
+        }
+
+        function renderLedgerTable() {
+            const year = document.getElementById("ledgerYearSelect").value;
+            const month = document.getElementById("ledgerMonthSelect").value;
+            const tbody = document.getElementById("ledgerTableBody");
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            UNITS.forEach(u => {
+                const t = db.tenants[u];
+                const key = `${year}_${month}_${u}`;
+                const rec = db.ledgers[key];
+
+                const baseRent = t ? t.rent : 0;
+                const tr = document.createElement("tr");
+
+                if (rec) {
+                    let badge = "bg-rose-100 text-rose-800";
+                    if (rec.status === "Paid") badge = "bg-emerald-100 text-emerald-800";
+                    if (rec.status === "Partial") badge = "bg-amber-100 text-amber-800";
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-800">${u}</td>
+                        <td class="p-3 font-semibold text-slate-900">${t ? t.name : 'Unregistered'}</td>
+                        <td class="p-3 font-bold text-slate-700">₹${baseRent}</td>
+                        <td class="p-3 font-bold text-emerald-700">₹${rec.amountPaid || 0}</td>
+                        <td class="p-3 text-slate-600">${rec.mode || 'UPI'}</td>
+                        <td class="p-3 text-slate-600">${rec.date || '-'}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badge}">${rec.status}</span></td>
+                        <td class="p-3">
+                            <button onclick="quickMarkPaid('${year}', '${month}', '${u}', ${baseRent})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[11px] font-bold">Quick Paid</button>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-800">${u}</td>
+                        <td class="p-3 text-slate-600">${t ? t.name : 'Vacant'}</td>
+                        <td class="p-3 font-bold text-slate-700">₹${baseRent}</td>
+                        <td class="p-3 text-slate-400">₹0</td>
+                        <td class="p-3 text-slate-400">-</td>
+                        <td class="p-3 text-slate-400">-</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">Unpaid</span></td>
+                        <td class="p-3">
+                            <button onclick="quickMarkPaid('${year}', '${month}', '${u}', ${baseRent})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[11px] font-bold">Mark Paid</button>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadSelectedLedgerEntry() {
+            const year = document.getElementById("ledgerYearSelect").value;
+            const month = document.getElementById("ledgerMonthSelect").value;
+            const unit = document.getElementById("ledgerUnitSelect").value;
+
+            if (!unit) return;
+
+            const t = db.tenants[unit];
+            const key = `${year}_${month}_${unit}`;
+            const rec = db.ledgers[key];
+
+            if (rec) {
+                document.getElementById("ledgerAmountPaid").value = rec.amountPaid;
+                document.getElementById("ledgerPayMode").value = rec.mode || 'UPI';
+                document.getElementById("ledgerPayStatus").value = rec.status;
+                document.getElementById("ledgerPayDate").value = rec.date || new Date().toISOString().split('T')[0];
+            } else {
+                document.getElementById("ledgerAmountPaid").value = t ? t.rent : 0;
+                document.getElementById("ledgerPayMode").value = 'UPI';
+                document.getElementById("ledgerPayStatus").value = 'Paid';
+                document.getElementById("ledgerPayDate").value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function saveLedgerEntryFromForm() {
+            const year = document.getElementById("ledgerYearSelect").value;
+            const month = document.getElementById("ledgerMonthSelect").value;
+            const unit = document.getElementById("ledgerUnitSelect").value;
+
+            if (!unit) {
+                showToast("Please select a unit.", "error");
+                return;
+            }
+
+            const key = `${year}_${month}_${unit}`;
+            db.ledgers[key] = {
+                amountPaid: parseFloat(document.getElementById("ledgerAmountPaid").value) || 0,
+                mode: document.getElementById("ledgerPayMode").value,
+                status: document.getElementById("ledgerPayStatus").value,
+                date: document.getElementById("ledgerPayDate").value
+            };
+
+            saveAndRenderAll();
+            showToast(`Ledger updated & synced for ${unit}!`);
+        }
+
+        function quickMarkPaid(year, month, unit, baseRent) {
+            const key = `${year}_${month}_${unit}`;
+            db.ledgers[key] = {
+                amountPaid: baseRent,
+                mode: 'UPI',
+                status: 'Paid',
+                date: new Date().toISOString().split('T')[0]
+            };
+            saveAndRenderAll();
+            showToast(`Marked Paid for ${unit}`);
+        }
+
+        function populateWhatsAppForm() {
+            const unit = document.getElementById("waUnitSelect")?.value;
+            const month = document.getElementById("waMonthSelect")?.value;
+            const year = document.getElementById("waYearSelect")?.value;
+
+            if (!unit || !month || !year) return;
+
+            const t = db.tenants[unit];
+            const key = `${year}_${month}_${unit}`;
+            const rec = db.ledgers[key];
+
+            const baseRent = t ? t.rent : 0;
+            const paid = rec ? rec.amountPaid : 0;
+            const status = rec ? rec.status : 'Unpaid';
+
+            const msg = `*Shiv Sadan - Rent Receipt/Notice*\n` +
+                        `----------------------------------\n` +
+                        `*Unit:* ${unit}\n` +
+                        `*Tenant Name:* ${t ? t.name : 'Occupant'}\n` +
+                        `*Period:* ${month} ${year}\n` +
+                        `*Monthly Rent:* ₹${baseRent}\n` +
+                        `*Amount Paid:* ₹${paid}\n` +
+                        `*Payment Status:* ${status}\n` +
+                        `*UPI ID:* 7041724041@ybl\n` +
+                        `----------------------------------\n` +
+                        `*Management:* Savita Vaniya / Yashraj`;
+
+            document.getElementById("waMessagePreview").value = msg;
+        }
+
+        function dispatchWhatsAppMessage() {
+            const unit = document.getElementById("waUnitSelect").value;
+            const t = db.tenants[unit];
+            const targetPhone = (t && t.phone) ? t.phone : '7041724041';
+
+            const msg = encodeURIComponent(document.getElementById("waMessagePreview").value);
+            window.open(`https://wa.me/91${targetPhone}?text=${msg}`, '_blank');
+        }
+
+        function renderTenantRoomDashboard() {
+            if (!activeTenantUnit) return;
+
+            const t = db.tenants[activeTenantUnit];
+            document.getElementById("tenantRoomBadge").innerText = activeTenantUnit;
+            document.getElementById("tenantDisplayTitle").innerText = t ? `${t.name}'s Room` : `${activeTenantUnit} Dashboard`;
+
+            const tbody = document.getElementById("tenantRoomLedgerBody");
+            tbody.innerHTML = '';
+            const year = document.getElementById("tenantYearSelect").value || new Date().getFullYear();
+
+            MONTHS.forEach(m => {
+                const key = `${year}_${m}_${activeTenantUnit}`;
+                const rec = db.ledgers[key];
+                const base = t ? t.rent : 0;
+
+                const tr = document.createElement("tr");
+                if (rec) {
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-800">${m}</td>
+                        <td class="p-3">₹${base}</td>
+                        <td class="p-3 font-bold text-emerald-700">₹${rec.amountPaid}</td>
+                        <td class="p-3 text-slate-600">${rec.mode || 'UPI'}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">${rec.status}</span></td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-3 font-medium text-slate-600">${m}</td>
+                        <td class="p-3">₹${base}</td>
+                        <td class="p-3 text-slate-400">₹0</td>
+                        <td class="p-3 text-slate-400">-</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500">Unpaid</span></td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function saveOwnerPasswordChange() {
+            const curr = document.getElementById("setCurrOwnerPass").value;
+            const newP = document.getElementById("setNewOwnerPass").value;
+
+            if (curr !== db.ownerPassword) {
+                showToast("Current owner password incorrect", "error");
+                return;
+            }
+            if (!newP || newP.length < 4) {
+                showToast("Password must be at least 4 characters", "error");
+                return;
+            }
+
+            db.ownerPassword = newP;
+            saveAndRenderAll();
+            showToast("Owner Password Updated!");
+            document.getElementById("setCurrOwnerPass").value = '';
+            document.getElementById("setNewOwnerPass").value = '';
+        }
+
+        function resetAllDatabase() {
+            if (confirm("Reset cloud system storage? This clears custom tenants, photos, and payment ledgers for everyone.")) {
+                db = {
+                    ownerPassword: DEFAULT_OWNER_PASS,
+                    tenants: {},
+                    ledgers: {},
+                    photos: DEFAULT_PHOTOS
+                };
+                saveAndRenderAll();
+                showToast("Cloud Database Reset Completed", "error");
+            }
+        }
+
+        function copyUPI() {
+            const upi = "7041724041@ybl";
+            const el = document.createElement('textarea');
+            el.value = upi;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Copied UPI ID: " + upi);
+        }
+
+        function exportDataCSV() {
+            let csv = "Unit,Occupant Name,Phone,Monthly Rent,Room Password\n";
+
+            UNITS.forEach(u => {
+                const t = db.tenants[u];
+                const pass = (t && t.roomPassword) ? t.roomPassword : DEFAULT_ROOM_PASS;
+                if (t) {
+                    csv += `"${t.unit}","${t.name}","${t.phone || ''}","${t.rent}","${pass}"\n`;
+                } else {
+                    csv += `"${u}","Vacant","","","${pass}"\n`;
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Shiv_Sadan_Directory_${new Date().toISOString().split('T')[0]}.csv`);
+            a.click();
+            showToast("Exported CSV file.");
+        }
+    </script>
+</body>
+</html>
